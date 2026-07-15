@@ -1,0 +1,211 @@
+chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(console.error);
+
+const MAX_LOGS = 1000;
+const BYPASS_LIST = ['localhost', '127.0.0.1', '*.corp.internal'];
+
+// Pre-Flight Tor Check
+async function isTorDaemonRunning() {
+  try {
+    // A shallow check trying to hit a fast reliable local or internet endpoint via tor might be tricky without full fetch support for proxy in service worker, 
+    // but we can try fetching something quickly or just assume success until proxy fails, or make a direct local fetch if possible.
+    // The requirement says: "attempt a rapid, shallow fetch through the proxy port before locking the browser network stack"
+    // Since fetch in extensions doesn't use the extension's proxy settings for the service worker in Manifest V3 easily (it uses the system or extension proxy if set),
+    // we'll attempt a direct fetch to the SOCKS5 port to see if a service is listening. It will fail with a protocol error but the connection will succeed if open.
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 1000);
+    try {
+      await fetch('http://127.0.0.1:9050', { signal: controller.signal, mode: 'no-cors' });
+      clearTimeout(timeoutId);
+      return true; // Connection accepted (even if HTTP parsing failed)
+    } catch (err) {
+      clearTimeout(timeoutId);
+      if (err.message.includes('fetch') || err.name === 'AbortError' || err.message.includes('Failed to fetch')) {
+        // Let's try 9150 (Tor Browser default)
+        const controller2 = new AbortController();
+        const timeoutId2 = setTimeout(() => controller2.abort(), 1000);
+        try {
+          await fetch('http://127.0.0.1:9150', { signal: controller2.signal, mode: 'no-cors' });
+          clearTimeout(timeoutId2);
+          return true;
+        } catch (e2) {
+          clearTimeout(timeoutId2);
+          return false;
+        }
+      }
+      return true; // some other error might mean it's open
+    }
+  } catch (e) {
+    return false;
+  }
+}
+
+async function configureTorProxy(enable) {
+  try {
+    if (enable) {
+      const isRunning = await isTorDaemonRunning();
+      if (!isRunning) {
+        throw new Error('TOR_DAEMON_OFFLINE');
+      }
+
+      const config = {
+        mode: "fixed_servers",
+        rules: {
+          singleProxy: {
+            scheme: "socks5",
+            host: "127.0.0.1",
+            port: 9050
+          },
+          bypassList: BYPASS_LIST
+        }
+      };
+      
+      await new Promise((resolve) => {
+        chrome.proxy.settings.set({ value: config, scope: 'regular' }, resolve);
+      });
+      console.log("VoidFetch: Tor SOCKS5 Proxy Enabled");
+      return { success: true };
+    } else {
+      await new Promise((resolve) => {
+        chrome.proxy.settings.clear({ scope: 'regular' }, resolve);
+      });
+      console.log("VoidFetch: Tor SOCKS5 Proxy Disabled");
+      return { success: true };
+    }
+  } catch (err) {
+    console.error("VoidFetch: Proxy Configuration Error:", err);
+    await new Promise((resolve) => chrome.proxy.settings.clear({ scope: 'regular' }, resolve));
+    return { success: false, error: err.message };
+  }
+}
+
+async function configureGatewayFallback(enable) {
+  try {
+    const RULE_ID = 1;
+    if (enable) {
+      await chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: [RULE_ID],
+        addRules: [{
+          id: RULE_ID,
+          priority: 1,
+          action: {
+            type: "redirect",
+            redirect: {
+            }
+          },
+          condition: {
+            regexFilter: "^(https?://[^/]+)\\.onion(/.*)?$",
+            resourceTypes: ["main_frame", "sub_frame", "xmlhttprequest", "websocket", "other"]
+          }
+        }]
+      });
+      // The transform hostSuffix doesn't append, it replaces. To append .ly, we should use regexFilter and regexSubstitution
+      
+      await chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: [RULE_ID],
+        addRules: [{
+          id: RULE_ID,
+          priority: 1,
+          action: {
+            type: "redirect",
+            redirect: {
+              regexSubstitution: "\\1.onion.ly\\2"
+            }
+          },
+          condition: {
+            regexFilter: "^(https?://[^/]+)\\.onion(/.*)?$",
+            resourceTypes: ["main_frame", "sub_frame", "xmlhttprequest", "websocket", "other", "script", "image", "stylesheet"]
+          }
+        }]
+      });
+      
+      console.log("VoidFetch: Deep Web Gateway Fallback Enabled");
+      return { success: true };
+    } else {
+      await chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: [RULE_ID]
+      });
+      console.log("VoidFetch: Deep Web Gateway Fallback Disabled");
+      return { success: true };
+    }
+  } catch (err) {
+    console.error("VoidFetch: Gateway Configuration Error:", err);
+    return { success: false, error: err.message };
+  }
+}
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'TELEMETRY_LOG') {
+    handleTelemetry(message.payload, sender);
+    return false;
+  }
+  
+  if (message.type === 'TOGGLE_TOR_PROXY') {
+    configureTorProxy(message.enable).then(sendResponse);
+    return true; // Async response
+  }
+  
+  if (message.type === 'TOGGLE_GATEWAY_FALLBACK') {
+    configureGatewayFallback(message.enable).then(sendResponse);
+    return true; // Async response
+  }
+  
+  return false;
+});
+
+async function handleTelemetry(data, sender) {
+  try {
+    const tab = sender.tab;
+    const tabId = tab ? tab.id : -1;
+    
+    let action = data.riskTier === 'CRITICAL' ? 'blocked' : (data.riskTier === 'HIGH' ? 'encrypted' : 'allowed');
+    let telemetryFlag = null;
+    if (data.url && data.url.includes('.onion.ly')) {
+      telemetryFlag = 'ANONYMOUS_ROUTING';
+    }
+
+    const enrichedLog = {
+      id: crypto.randomUUID(),
+      timestamp: new Date(data.timestamp).toISOString(),
+      url: data.url,
+      method: data.method,
+      action: action,
+      sensitiveFieldsDetected: data.categories,
+      payloadSize: data.payloadSize !== undefined ? data.payloadSize : (data.payloadSnippet ? data.payloadSnippet.length : 0),
+      severity: data.riskTier.toLowerCase(),
+      originalPayload: data.payloadSnippet,
+      telemetryFlag: telemetryFlag,
+      tabId: tabId,
+      tabTitle: tab ? tab.title : 'Unknown',
+      tabFavIcon: tab ? tab.favIconUrl : '',
+      overheadMs: data.overheadMs
+    };
+
+    const sessionData = await chrome.storage.local.get(['logs']);
+    let logs = sessionData.logs || [];
+    
+    logs.unshift(enrichedLog);
+    if (logs.length > MAX_LOGS) {
+      logs = logs.slice(0, MAX_LOGS);
+    }
+    
+    await chrome.storage.local.set({ logs: logs });
+  } catch (err) {
+    console.error("VoidFetch Background Error:", err);
+  }
+}
+
+// Garbage Collection
+chrome.tabs.onRemoved.addListener(async (tabId) => {
+  try {
+    const sessionData = await chrome.storage.local.get(['logs']);
+    let logs = sessionData.logs || [];
+    
+    const filteredLogs = logs.filter(log => log.tabId !== tabId);
+    
+    if (filteredLogs.length !== logs.length) {
+      await chrome.storage.local.set({ logs: filteredLogs });
+    }
+  } catch (err) {
+    console.error("VoidFetch Tab GC Error:", err);
+  }
+});
