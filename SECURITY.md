@@ -1,21 +1,12 @@
-# Security Policy
+# <samp> Reporting a Vulnerability
 
-## Supported Versions
+<samp>
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+- **Reporting** – Open a GitHub security advisory with “Security Vulnerability”; include description, URL/path, reproduction steps, impact, environment info, and optional fix.  
+- **Response & Handling** – Acknowledge within 3 days, assess in 7, verify, score severity (CVSS), develop/test fix, deploy to main, and disclose in `SECURITY.md`.  
+- **Security Measures** – Sanitized inputs, no persistent sensitive data, CSP headers, HTTPS enforced, dependency updates (Dependabot, manual review, pinned versions, `npm audit`).  
+- **Practices & Tools** – Input validation, output encoding, least privilege, secure headers, regular updates; recommended scans via Mozilla Observatory, Snyk, OWASP ZAP.  
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+## Acknowledgements
 
-## Reporting a Vulnerability
-
-Use this section to tell people how to report a vulnerability.
-
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+**Security researchers who responsibly disclose vulnerabilities will be acknowledged here unless they prefer to remain anonymous.**
