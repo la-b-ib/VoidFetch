@@ -25,32 +25,15 @@
 
 **<summary>System Architecture</summary>**
 
-
 **VoidFetch employs a modern Chrome Extension (Manifest V3) architecture:**
 
-1. **Background Service Worker (`background.js`)**:
-   - Manages extension lifecycle.
-   - Handles **`declarativeNetRequest`** dynamic rules.
-   - Manages Proxy API configurations.
-   - Coordinates state between content scripts and the Side Panel UI.
+| **Layer & Component** | **File(s)** | **Tech Stack** | **Role & Responsibilities** |
+|------------------------|-------------|----------------------------|------------------------------|
+| **Background Service Worker** | **background.js** | 1. **Extension API: Chrome Manifest V3**<br>2. **Networking: declarativeNetRequest**<br>3. **System APIs: Proxy API, Storage API** | 1. **Manages extension lifecycle**<br>2. **Handles declarativeNetRequest dynamic rules**<br>3. **Manages Proxy API configurations**<br>4. **Coordinates state between content scripts and Side Panel UI** |
+| **UI Layer** | **index.html** | 1. **Framework: React 19**<br>2. **Build Tool: Vite 6**<br>3. **Styling: Tailwind CSS 4**<br>4. **Icons: Lucide React**<br>5. **Animations: Motion**<br>6. **Charts: Recharts**<br>7. **Language: TypeScript & JavaScript** | 1. **Hosted in Chrome Side Panel**<br>2. **Built with React 19 + Vite 6**<br>3. **Styled using Tailwind CSS 4**<br>4. **Icons via Lucide React**<br>5. **Animated visualizations with Motion + Recharts** |
+| **Content Script** | **content_script.js** | <br>1. **Execution Context: Isolated World** | 1. **Secure communication bridge between background worker and DOM** |
+| **Content Script (Main World)** | **injected.js** | 1. **Injection Timing: document_start** | 1. **Injected at document_start in host page**<br>2. **Runs in world: "MAIN" context**<br>3. **Strictly instruments native JS network APIs before other scripts execute** |
 
-2. **UI Layer (React + Vite + Tailwind CSS)**:
-   - Hosted in the Chrome Side Panel (`index.html`).
-   - Built with React 19, styled using Tailwind CSS 4, and features animated visualizations using Recharts and Motion.
-
-3. **Content Scripts**:
-   - **Isolated World (`content_script.js`)**: Secure communication bridge between the background worker and the DOM.
-   - **Main World (`injected.js`)**: Injected directly into the host page context (`world: "MAIN"`) at `document_start` to strictly instrument native JavaScript network APIs before any other scripts run.
-  
-</details>
-
-<details>
-
-**<summary>Tech Stack</summary>**
-
-| **Framework** | **Build Tool** | **Styling** | **Icons** | **Animations / Charts** | **Language** | **Extension API** |
-|---------------|----------------|-------------|-----------|--------------------------|--------------|-------------------|
-| **React 19**      | **Vite 6**         | **Tailwind CSS 4** | **Lucide React** | **Motion, Recharts**        | **TypeScript / JavaScript** | **Chrome Manifest V3** |
 
 
 </details>
