@@ -25,7 +25,7 @@
 
 **<summary>System Architecture</summary>**
 
-**VoidFetch employs a modern Chrome Extension (Manifest V3) architecture:**
+
 
 | **Layer & Component** | **File(s)** | **Tech Stack** | **Role & Responsibilities** |
 |------------------------|-------------|----------------------------|------------------------------|
@@ -42,13 +42,13 @@
    
 **<summary>Quick Start</summary>**
 
-| **Section** | **Details** | **Steps / Points** |
+| **Section** | **Details** | **Steps** |
 | --- | --- | --- |
 | **Prerequisites** | **Required Tools** | 1. **Node.js (v20+ recommended)**<br>2. **npm** |
 | **Setup** | **Install Dependencies** | 1. **Run:** **``npm install``** |
 | **Build Commands** | **Development & Packaging** | 1. **Development Build:** **``npm run dev``**<br>2. **Production Build: ``npm run build``**<br>3. **Pack Extension:** **``npm run pack → creates voidfetch-extension.zip``** |
 | **Installation (Chrome / Edge)** | **Local Setup** | 1. **Build extension using ``npm run build``**<br>2. **Open Chrome → navigate to ``chrome://extensions/``**<br>3. **Toggle Developer Mode (top right)**<br>4. **Click “Load unpacked” → select **``extension_ready``** directory**<br>5. **Alternatively: run ``npm run pack → distribute voidfetch-extension.zip``** |
-| **Permissions Justification** | **Why Each Permission Is Needed** | 1. **sidePanel: Render persistent analytics dashboard**<br>2. **declarativeNetRequest: Enforce DLP rules & block malicious traffic dynamically**<br>3. **proxy: Route specific traffic through secure channels if required**<br>4. **scripting & tabs: Inject Main World trackers & communicate with active web pages**<br>5. **storage: Persist user settings, DLP policies, and local logs**<br>6. **host_permissions (**``<all_urls>``**): Monitor & protect data across all websites globally** |
+| **Permissions Justification** | **Why Each Permission Is Needed?** | 1. **sidePanel: Render persistent analytics dashboard**<br>2. **declarativeNetRequest: Enforce DLP rules & block malicious traffic dynamically**<br>3. **proxy: Route specific traffic through secure channels if required**<br>4. **scripting & tabs: Inject Main World trackers & communicate with active web pages**<br>5. **storage: Persist user settings, DLP policies, and local logs**<br>6. **host_permissions (**``<all_urls>``**): Monitor & protect data across all websites globally** |
 
 </details>
 
