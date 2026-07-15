@@ -38,64 +38,17 @@
 
 </details>
 
-## 💻 Development & Build Instructions
+<details>
+   
+**<summary>Quick Start</summary>**
 
 | **Section** | **Details** | **Steps / Points** |
 | --- | --- | --- |
 | **Prerequisites** | **Required Tools** | 1. **Node.js (v20+ recommended)**<br>2. **npm** |
-| **Setup** | **Install Dependencies** | 1. **Run: **``npm ``install`` |
-| **Build Commands** | **Development & Packaging** | 1. **Development Build: **``npm ``run ``dev``<br>2. **Production Build: **``npm ``run ``build``<br>3. **Pack Extension: **``npm ``run ``pack``** → creates **``voidfetch-extension.zip`` |
-| **Installation (Chrome / Edge)** | **Local Setup** | 1. **Build extension using **``npm ``run ``build``<br>2. **Open Chrome → navigate to **``chrome://extensions/``<br>3. **Toggle Developer Mode (top right)**<br>4. **Click “Load unpacked” → select **``extension_ready``** directory**<br>5. **Alternatively: run **``npm ``run ``pack``** → distribute **``voidfetch-extension.zip`` |
+| **Setup** | **Install Dependencies** | 1. **Run:** **``npm install``** |
+| **Build Commands** | **Development & Packaging** | 1. **Development Build:** **``npm run dev``**<br>2. **Production Build: ``npm run build``**<br>3. **Pack Extension:** **``npm run pack → creates voidfetch-extension.zip``** |
+| **Installation (Chrome / Edge)** | **Local Setup** | 1. **Build extension using ``npm run build``**<br>2. **Open Chrome → navigate to ``chrome://extensions/``**<br>3. **Toggle Developer Mode (top right)**<br>4. **Click “Load unpacked” → select **``extension_ready``** directory**<br>5. **Alternatively: run ``npm run pack → distribute voidfetch-extension.zip``** |
 | **Permissions Justification** | **Why Each Permission Is Needed** | 1. **sidePanel: Render persistent analytics dashboard**<br>2. **declarativeNetRequest: Enforce DLP rules & block malicious traffic dynamically**<br>3. **proxy: Route specific traffic through secure channels if required**<br>4. **scripting & tabs: Inject Main World trackers & communicate with active web pages**<br>5. **storage: Persist user settings, DLP policies, and local logs**<br>6. **host_permissions (**``<all_urls>``**): Monitor & protect data across all websites globally** |
 
+</details>
 
-
-### Prerequisites
-- Node.js (v20+ recommended)
-- npm
-
-### Setup
-```bash
-# Install dependencies
-npm install
-```
-
-### Build Commands
-
-- **Development Build**:
-  ```bash
-  npm run dev
-  ```
-- **Production Build**:
-  ```bash
-  npm run build
-  ```
-- **Pack Extension**:
-  Compiles the production build and creates a deployable ZIP archive (`voidfetch-extension.zip`).
-  ```bash
-  npm run pack
-  ```
-
-## 📦 Installation (Chrome / Edge)
-
-To install VoidFetch locally for development or testing:
-
-1. Build the extension using `npm run build`.
-2. Open Chrome and navigate to `chrome://extensions/`.
-3. Toggle **Developer mode** in the top right corner.
-4. Click **Load unpacked** and select the `extension_ready` directory from this project.
-   - *Alternatively, run `npm run pack` and you can distribute the resulting `voidfetch-extension.zip` file.*
-
-## 🔒 Permissions Justification
-
-VoidFetch requests the following permissions to function:
-- `sidePanel`: To render the persistent analytics dashboard.
-- `declarativeNetRequest`: To enforce DLP rules and block malicious/unauthorized network traffic dynamically.
-- `proxy`: To route specific traffic through secure channels if required.
-- `scripting` & `tabs`: To inject Main World trackers and communicate with active web pages.
-- `storage`: To persist user settings, DLP policies, and local logs.
-- `host_permissions` (`<all_urls>`): Required to monitor and protect data across all websites globally.
-
-## 📄 License
-
-Proprietary / Enterprise. All rights reserved.
